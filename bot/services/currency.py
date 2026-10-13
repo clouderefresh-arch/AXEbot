@@ -12,7 +12,7 @@ _MAX_CNY = Decimal("100000000")
 _CNY_WORDS = ("юаней", "юаня", "юань", "cny", "rmb", "¥", "￥")
 
 
-@dataclass(frozen=True, slots=True)
+@dataclass(frozen=True)
 class ConvertedPrice:
     """Цена закупки и цена для клиента после наценки."""
 

@@ -67,7 +67,7 @@ def utc_now() -> str:
     return datetime.now(timezone.utc).replace(microsecond=0).isoformat()
 
 
-@dataclass(slots=True)
+@dataclass
 class Order:
     """Строка таблицы orders."""
 

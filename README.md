@@ -4,7 +4,7 @@ Telegram-бот персонального подбора товаров. Кли
 
 ## Стек
 
-- Python 3.11+
+- Python 3.9+
 - aiogram 3.x
 - aiosqlite
 - APScheduler

@@ -48,7 +48,7 @@ def _optional_text(raw: str, *, limit: int, label: str) -> str | None:
     return text
 
 
-@dataclass(slots=True)
+@dataclass
 class OrderDraft:
     """Черновик заявки в FSM до записи в базу."""
 
@@ -121,7 +121,7 @@ class OrderDraft:
         return replace(self, **{field: value})
 
 
-@dataclass(slots=True)
+@dataclass
 class ReplyDraft:
     """Черновик структурированного ответа ассистента."""
 
