@@ -48,7 +48,8 @@ async def main() -> None:
     dispatcher.errors.register(on_error)
     scheduler = setup_scheduler(bot, database, settings, reminders)
     scheduler.start()
-    logger.info("Бот запущен. Тихая зона: %s", settings.timezone)
+    rates = await currency.get_rates()
+    logger.info("Бот запущен. Тихая зона: %s. %s", settings.timezone, rates.note())
     try:
         await dispatcher.start_polling(bot)
     finally:

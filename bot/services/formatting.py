@@ -88,7 +88,12 @@ def format_client_preview(draft: OrderDraft) -> str:
     )
 
 
-def format_builder(draft: ReplyDraft, *, markup_percent: float) -> str:
+def format_builder(
+    draft: ReplyDraft,
+    *,
+    markup_percent: float,
+    rate_note: str | None = None,
+) -> str:
     price = format_price_values(draft.price_cny, draft.price_rub, draft.price_usd)
     if (
         draft.raw_cny is not None
@@ -102,15 +107,18 @@ def format_builder(draft: ReplyDraft, *, markup_percent: float) -> str:
     delivery = escape(draft.delivery_time) if draft.delivery_time else "—"
     photo = "прикреплено" if draft.assistant_photo_id else "нет"
     comment = escape(draft.assistant_comment) if draft.assistant_comment else "—"
-    return "\n".join(
+    lines = [f"<b>Формирование ответа по заявке #{draft.order_id}</b>"]
+    if rate_note:
+        lines.append(escape(rate_note))
+    lines.extend(
         (
-            f"<b>Формирование ответа по заявке #{draft.order_id}</b>",
             f"• Цена: {price}",
             f"• Сроки доставки: {delivery}",
             f"• Фото: {photo}",
             f"• Комментарий: {comment}",
         )
     )
+    return "\n".join(lines)
 
 
 def format_admin_card(order: Order, *, tz: ZoneInfo) -> str:

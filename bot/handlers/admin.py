@@ -121,15 +121,21 @@ async def _render_builder(
     state: FSMContext,
     draft: ReplyDraft,
     settings: Settings,
+    currency: CurrencyService,
     *,
     prefer: Message | None = None,
     anchor: Message | None = None,
 ) -> None:
+    rates = await currency.get_rates()
     await state.set_state(ReplyBuilder.menu)
     await state.update_data(**draft.to_state())
     await show_screen(
         state,
-        format_builder(draft, markup_percent=settings.markup_percent),
+        format_builder(
+            draft,
+            markup_percent=settings.markup_percent,
+            rate_note=rates.note(),
+        ),
         builder_keyboard(draft),
         prefer=prefer,
         anchor=anchor,
@@ -342,6 +348,7 @@ async def open_builder(
     state: FSMContext,
     db: Database,
     settings: Settings,
+    currency: CurrencyService,
     bot: Bot,
 ) -> None:
     order = await _order_or_alert(query, db, callback_data.order_id)
@@ -358,9 +365,14 @@ async def open_builder(
         )
         return
     draft = ReplyDraft.from_order(order)
+    rates = await currency.get_rates()
     data = await state.get_data()
     sent = await message.answer(
-        format_builder(draft, markup_percent=settings.markup_percent),
+        format_builder(
+            draft,
+            markup_percent=settings.markup_percent,
+            rate_note=rates.note(),
+        ),
         reply_markup=builder_keyboard(draft),
     )
     old_chat = data.get("ui_chat_id")
@@ -417,13 +429,20 @@ async def clear_reply_photo(
     state: FSMContext,
     db: Database,
     settings: Settings,
+    currency: CurrencyService,
 ) -> None:
     try:
         draft = (await _load_draft(state, callback_data.order_id, db)).with_photo(None)
     except ValueError as exc:
         await query.answer(str(exc), show_alert=True)
         return
-    await _render_builder(state, draft, settings, prefer=as_message(query.message))
+    await _render_builder(
+        state,
+        draft,
+        settings,
+        currency,
+        prefer=as_message(query.message),
+    )
     await query.answer("Фото убрано")
 
 
@@ -434,13 +453,20 @@ async def back_to_builder(
     state: FSMContext,
     db: Database,
     settings: Settings,
+    currency: CurrencyService,
 ) -> None:
     try:
         draft = await _load_draft(state, callback_data.order_id, db)
     except ValueError as exc:
         await query.answer(str(exc), show_alert=True)
         return
-    await _render_builder(state, draft, settings, prefer=as_message(query.message))
+    await _render_builder(
+        state,
+        draft,
+        settings,
+        currency,
+        prefer=as_message(query.message),
+    )
     await query.answer()
 
 
@@ -534,12 +560,12 @@ async def save_price(
         if raw.casefold() in CLEAR_TOKENS:
             draft = draft.without_price()
         else:
-            draft = draft.with_price(currency.convert(parse_cny(raw)))
+            draft = draft.with_price(await currency.convert(parse_cny(raw)))
     except ValueError as exc:
         await message.answer(str(exc))
         return
     await try_delete(message)
-    await _render_builder(state, draft, settings, anchor=message)
+    await _render_builder(state, draft, settings, currency, anchor=message)
 
 
 @router.message(ReplyBuilder.price)
@@ -548,8 +574,13 @@ async def price_expected(message: Message) -> None:
 
 
 @router.message(ReplyBuilder.delivery, F.text)
-async def save_delivery(message: Message, state: FSMContext, settings: Settings) -> None:
-    await _save_text_field(message, state, settings, kind="delivery")
+async def save_delivery(
+    message: Message,
+    state: FSMContext,
+    settings: Settings,
+    currency: CurrencyService,
+) -> None:
+    await _save_text_field(message, state, settings, currency, kind="delivery")
 
 
 @router.message(ReplyBuilder.delivery)
@@ -558,8 +589,13 @@ async def delivery_expected(message: Message) -> None:
 
 
 @router.message(ReplyBuilder.comment, F.text)
-async def save_comment(message: Message, state: FSMContext, settings: Settings) -> None:
-    await _save_text_field(message, state, settings, kind="comment")
+async def save_comment(
+    message: Message,
+    state: FSMContext,
+    settings: Settings,
+    currency: CurrencyService,
+) -> None:
+    await _save_text_field(message, state, settings, currency, kind="comment")
 
 
 @router.message(ReplyBuilder.comment)
@@ -568,7 +604,12 @@ async def comment_expected(message: Message) -> None:
 
 
 @router.message(ReplyBuilder.photo, F.photo)
-async def save_reply_photo(message: Message, state: FSMContext, settings: Settings) -> None:
+async def save_reply_photo(
+    message: Message,
+    state: FSMContext,
+    settings: Settings,
+    currency: CurrencyService,
+) -> None:
     if not message.photo:
         return
     try:
@@ -579,7 +620,7 @@ async def save_reply_photo(message: Message, state: FSMContext, settings: Settin
         await message.answer(str(exc))
         return
     await try_delete(message)
-    await _render_builder(state, draft, settings, anchor=message)
+    await _render_builder(state, draft, settings, currency, anchor=message)
 
 
 @router.message(ReplyBuilder.photo)
@@ -611,6 +652,7 @@ async def _save_text_field(
     message: Message,
     state: FSMContext,
     settings: Settings,
+    currency: CurrencyService,
     *,
     kind: str,
 ) -> None:
@@ -626,7 +668,7 @@ async def _save_text_field(
         await message.answer(str(exc))
         return
     await try_delete(message)
-    await _render_builder(state, draft, settings, anchor=message)
+    await _render_builder(state, draft, settings, currency, anchor=message)
 
 
 def _tz(settings: Settings) -> ZoneInfo:
