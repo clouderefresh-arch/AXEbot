@@ -24,7 +24,7 @@ gsap.registerPlugin(
 );
 gsap.defaults({ duration: 0.5, ease: "power3.out" });
 
-const PHRASE = "Снимок · буква · строки";
+const PHRASE = "Курсор идёт по кабелю";
 const stage = document.querySelector("#stage");
 const page = document.querySelector("#page");
 const hud = document.querySelector("#hud");
@@ -109,8 +109,8 @@ Observer.create({
   type: "wheel",
   preventDefault: false,
   tolerance: 8,
-  onUp: () => setHud("Колесо вверх"),
-  onDown: () => setHud("Колесо вниз"),
+  onUp: () => setHud("Колесо идёт вверх"),
+  onDown: () => setHud("Колесо идёт вниз"),
 });
 
 Observer.create({
@@ -118,10 +118,10 @@ Observer.create({
   type: "pointer,touch",
   preventDefault: true,
   tolerance: 16,
-  onLeft: () => setHud("Свайп влево"),
-  onRight: () => setHud("Свайп вправо"),
-  onUp: () => setHud("Свайп вверх"),
-  onDown: () => setHud("Свайп вниз"),
+  onLeft: () => setHud("Провели влево"),
+  onRight: () => setHud("Провели вправо"),
+  onUp: () => setHud("Провели вверх"),
+  onDown: () => setHud("Провели вниз"),
 });
 
 const mm = gsap.matchMedia();
@@ -189,7 +189,7 @@ mm.add(
       .from("#stage .cable", { autoAlpha: 0, duration: 0.4 }, 0.4)
       .from("#stage .pointer", { autoAlpha: 0, scale: 0.72, duration: 0.42, ease: "back.out(1.6)" }, 0.66)
       .from(split.chars, { yPercent: 110, duration: 0.5, stagger: 0.02 }, 0.18)
-      .from(".hero .eyebrow, .hero .lead, .hero .actions", { y: 18, autoAlpha: 0, duration: 0.45, stagger: 0.08 }, 0.22)
+      .from(".hero .lead, .hero .actions", { y: 18, autoAlpha: 0, duration: 0.45, stagger: 0.08 }, 0.22)
       .to(".cipher", {
         duration: 1.15,
         scrambleText: {

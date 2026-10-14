@@ -4,21 +4,26 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Страница из блоков</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Geologica:wght@400;500;600&family=Unbounded:wght@500;600&display=swap"
+      rel="stylesheet"
+    />
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
-    <p class="hud" id="hud" aria-live="polite">Жест: ожидаю колесо или свайп</p>
+    <p class="hud" id="hud" aria-live="polite">Жду колесо или свайп</p>
     <div id="smooth-wrapper">
       <div id="smooth-content">
         <div id="page">
           <header class="hero">
             <div class="copy">
-              <p class="eyebrow">Одностраничный прототип</p>
               <h1>Страница собирается из блоков</h1>
-              <p class="cipher" aria-label="Снимок, буква и строки"></p>
+              <p class="cipher" aria-label="Курсор идёт по кабелю"></p>
               <p class="lead">
-                Заголовок выходит по буквам, штрихи прорисовываются сами, курсор
-                проходит по кабелю. Карточку со снимком можно перетащить.
+                Снимок и буква выезжают на синее окно. Карточку со снимком можно
+                перетащить.
               </p>
               <div class="actions">
                 <button id="jump" class="btn btn-primary" type="button">Смотреть слои</button>
@@ -76,12 +81,10 @@
           <section class="assemble" id="assemble">
             <div class="assemble-sticky">
               <div class="copy">
-                <p class="eyebrow">Прокрутка</p>
-                <h2>Окно остаётся, сцена собирается</h2>
+                <h2>Окно остаётся на экране</h2>
                 <p class="lead">
-                  Блок держится на экране, пока карточки и кабель входят по ходу
-                  прокрутки. Иллюстрация сверху смещается вместе со страницей,
-                  а сама страница едет с инерцией.
+                  Крутите страницу: карточки и кабель входят, а само окно стоит
+                  на месте.
                 </p>
                 <p class="scrub-label" id="scrub-label">Сборка 0%</p>
               </div>
@@ -124,32 +127,31 @@
           </section>
 
           <main id="layers" class="layers">
-            <h2>Три слоя движения</h2>
+            <h2>Три слоя по очереди</h2>
             <p class="layers-lead">
-              Главное действие ведёт взгляд. Остальное только поддерживает его.
-              Порядок карточек можно переставить: они переедут со старых мест.
+              Сначала окно, потом карточки, затем фон. Кнопка меняет их местами.
             </p>
             <div class="actions">
               <button id="reorder" class="btn btn-primary" type="button">Переставить</button>
             </div>
             <ol class="steps">
               <li class="step">
-                <span class="num">01</span>
+                <span class="num">1</span>
                 <h3>Окно</h3>
-                <p>Крупный синий экран приезжает снизу и становится героем кадра.</p>
+                <p>Синий экран приезжает первым и держит весь кадр.</p>
               </li>
               <li class="step">
-                <span class="num">02</span>
+                <span class="num">2</span>
                 <h3>Карточки</h3>
-                <p>Снимок и буква «A» входят следом, с небольшим запозданием.</p>
+                <p>Снимок и буква «A» входят следом.</p>
               </li>
               <li class="step">
-                <span class="num">03</span>
+                <span class="num">3</span>
                 <h3>Воздух</h3>
-                <p>Свечение, штрихи и кабель живут на фоне и не перебивают сборку.</p>
+                <p>Свечение, штрихи и кабель остаются на фоне.</p>
               </li>
             </ol>
-            <div class="swipe-pad" id="swipe-pad">Проведите здесь пальцем или мышью</div>
+            <div class="swipe-pad" id="swipe-pad">Проведите пальцем или мышью</div>
           </main>
         </div>
       </div>
