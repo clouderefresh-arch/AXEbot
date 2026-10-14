@@ -2,7 +2,12 @@
 
 from __future__ import annotations
 
-from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
+from aiogram.types import (
+    InlineKeyboardButton,
+    InlineKeyboardMarkup,
+    KeyboardButton,
+    ReplyKeyboardMarkup,
+)
 
 from bot.constants import URGENCY_LABELS, URGENCY_LOW, URGENCY_MEDIUM, URGENCY_URGENT
 from bot.database.db import Order
@@ -15,6 +20,75 @@ from bot.keyboards.callbacks import (
 )
 
 _CANCEL = inline_button("Отмена", CreateCB(action="cancel"))
+
+BTN_NEW = "Новая заявка"
+BTN_LIST = "Мои заявки"
+BTN_HELP = "Помощь"
+BTN_SKIP = "Пропустить"
+BTN_CANCEL = "Отмена"
+BTN_SEND = "Отправить заявку"
+BTN_EXTRAS = "Дополнительные параметры"
+BTN_EDIT_DESC = "Изменить описание"
+BTN_EDIT_PHOTO = "Изменить фото"
+BTN_EDIT_URGENCY = "Изменить срочность"
+BTN_BACK = "Назад"
+BTN_BUDGET = "Бюджет"
+BTN_SIZE = "Размер"
+BTN_COLOR = "Цвет"
+BTN_LINK = "Ссылка"
+
+EXTRA_REPLY_FIELDS = {
+    BTN_BUDGET: "budget",
+    BTN_SIZE: "size",
+    BTN_COLOR: "color",
+    BTN_LINK: "link",
+}
+
+
+def _reply(*rows: list[str]) -> ReplyKeyboardMarkup:
+    return ReplyKeyboardMarkup(
+        keyboard=[[KeyboardButton(text=label) for label in row] for row in rows],
+        resize_keyboard=True,
+    )
+
+
+def client_reply_menu() -> ReplyKeyboardMarkup:
+    return _reply([BTN_NEW], [BTN_LIST, BTN_HELP])
+
+
+def description_reply_kb() -> ReplyKeyboardMarkup:
+    return _reply([BTN_CANCEL])
+
+
+def photo_reply_kb() -> ReplyKeyboardMarkup:
+    return _reply([BTN_SKIP], [BTN_CANCEL])
+
+
+def urgency_reply_kb() -> ReplyKeyboardMarkup:
+    return _reply(
+        [URGENCY_LABELS[URGENCY_URGENT]],
+        [URGENCY_LABELS[URGENCY_MEDIUM]],
+        [URGENCY_LABELS[URGENCY_LOW]],
+        [BTN_CANCEL],
+    )
+
+
+def preview_reply_kb() -> ReplyKeyboardMarkup:
+    return _reply(
+        [BTN_SEND],
+        [BTN_EXTRAS],
+        [BTN_EDIT_DESC, BTN_EDIT_PHOTO],
+        [BTN_EDIT_URGENCY],
+        [BTN_CANCEL],
+    )
+
+
+def extras_reply_kb() -> ReplyKeyboardMarkup:
+    return _reply([BTN_BUDGET, BTN_SIZE], [BTN_COLOR, BTN_LINK], [BTN_BACK])
+
+
+def extra_input_reply_kb() -> ReplyKeyboardMarkup:
+    return _reply([BTN_BACK], [BTN_CANCEL])
 
 
 def client_main_keyboard() -> InlineKeyboardMarkup:

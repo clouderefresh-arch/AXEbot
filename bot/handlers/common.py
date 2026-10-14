@@ -9,13 +9,14 @@ from aiogram.types import Message
 
 from bot.config import Settings
 from bot.keyboards.admin import admin_main_keyboard
-from bot.keyboards.client import client_main_keyboard
+from bot.keyboards.client import client_reply_menu
 
 router = Router(name="common")
 
 CLIENT_START = (
     "<b>AXEbot</b> — персональный подбор товаров.\n\n"
-    "Опишите вещь, при желании приложите фото и укажите срочность. "
+    "Кнопки внизу экрана: «Новая заявка», «Мои заявки», «Помощь».\n"
+    "Опишите вещь текстом или сразу пришлите фото с подписью. "
     "Ассистент пришлёт цену в юанях, рублях и долларах, срок и комментарий."
 )
 
@@ -27,12 +28,13 @@ ADMIN_START = (
 
 CLIENT_HELP = (
     "<b>Как подать заявку</b>\n"
-    "1. Описание товара\n"
-    "2. Фото или «Пропустить»\n"
-    "3. Срочность\n"
+    "1. Описание текстом или фото с подписью\n"
+    "2. Если снимка ещё нет — бот попросит фото. «Пропустить» внизу экрана\n"
+    "3. Срочность кнопками внизу\n"
     "4. По желанию бюджет, размер, цвет и ссылка\n"
     "5. «Отправить заявку»\n\n"
-    "Когда ассистент ответит, можно принять предложение, отклонить его или задать вопрос.\n"
+    "Фото бот не удаляет. Когда ассистент ответит, можно принять предложение, "
+    "отклонить его или задать вопрос.\n"
     "/cancel — выйти из текущего шага.\n"
     "/orders — список ваших заявок."
 )
@@ -60,7 +62,7 @@ async def start(message: Message, state: FSMContext, settings: Settings) -> None
     if _is_admin(message, settings):
         await message.answer(ADMIN_START, reply_markup=admin_main_keyboard())
         return
-    await message.answer(CLIENT_START, reply_markup=client_main_keyboard())
+    await message.answer(CLIENT_START, reply_markup=client_reply_menu())
 
 
 @router.message(Command("help"))
@@ -68,14 +70,14 @@ async def help_command(message: Message, settings: Settings) -> None:
     if _is_admin(message, settings):
         await message.answer(ADMIN_HELP, reply_markup=admin_main_keyboard())
         return
-    await message.answer(CLIENT_HELP, reply_markup=client_main_keyboard())
+    await message.answer(CLIENT_HELP, reply_markup=client_reply_menu())
 
 
 @router.message(Command("cancel"))
 async def cancel_command(message: Message, state: FSMContext, settings: Settings) -> None:
     current = await state.get_state()
     await state.clear()
-    menu = admin_main_keyboard() if _is_admin(message, settings) else client_main_keyboard()
+    menu = admin_main_keyboard() if _is_admin(message, settings) else client_reply_menu()
     if current is None:
         await message.answer("Сейчас нечего отменять.", reply_markup=menu)
         return
@@ -87,4 +89,4 @@ async def menu_command(message: Message, settings: Settings) -> None:
     if _is_admin(message, settings):
         await message.answer("Панель ассистента.", reply_markup=admin_main_keyboard())
         return
-    await message.answer("Меню.", reply_markup=client_main_keyboard())
+    await message.answer("Меню.", reply_markup=client_reply_menu())
