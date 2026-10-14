@@ -38,19 +38,26 @@ const setHud = (text) => {
   hud.textContent = text;
 };
 
-const scrollToLayers = () => {
+const scrollToTarget = (target) => {
   if (smoother && !prefersReduce()) {
-    smoother.scrollTo("#layers", true, "top 24px");
+    smoother.scrollTo(target, true, "top 80px");
     return;
   }
   gsap.to(window, {
     duration: prefersReduce() ? 0 : 0.7,
-    scrollTo: { y: "#layers", offsetY: 24 },
+    scrollTo: { y: target, offsetY: 80 },
     ease: "power2.inOut",
   });
 };
 
-document.querySelector("#jump").addEventListener("click", scrollToLayers);
+document.querySelector("#jump").addEventListener("click", () => scrollToTarget("#layers"));
+
+document.querySelectorAll("[data-scroll]").forEach((link) => {
+  link.addEventListener("click", (event) => {
+    event.preventDefault();
+    scrollToTarget(link.getAttribute("href"));
+  });
+});
 
 document.querySelector("#morph").addEventListener("click", () => {
   sunShown = !sunShown;

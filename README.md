@@ -112,6 +112,7 @@ bot/services/currency.py
 bot/services/scheduler.py
 bot/keyboards/
 bot/states/
+site/                  одностраничный разбор синего окна
 ```
 
 Таблица `orders`: `id`, `user_id`, `user_name`, `description`, `user_photo_id`, `urgency` (`urgent` / `medium` / `low`), `status` (`pending` / `in_progress` / `answered` / `approved` / `completed` / `canceled`), `budget`, `size`, `color`, `reference_link`, `price_cny`, `price_rub`, `price_usd`, `delivery_time`, `assistant_comment`, `assistant_photo_id`, `created_at`, `updated_at`.
