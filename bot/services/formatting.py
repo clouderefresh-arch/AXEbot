@@ -75,7 +75,8 @@ def format_client_preview(draft: OrderDraft) -> str:
     urgency = URGENCY_LABELS.get(draft.urgency or "", "не выбрана")
     return "\n".join(
         (
-            "<b>Предпросмотр заявки</b>",
+            "<b>Новая заявка</b>",
+            "Нажмите кнопку под этим сообщением, затем введите значение.",
             "",
             f"<b>Описание:</b> {escape(draft.description) if draft.description else '—'}",
             f"<b>Фото:</b> {'прикреплено' if draft.user_photo_id else 'нет'}",

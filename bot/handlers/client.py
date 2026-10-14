@@ -6,6 +6,7 @@ from html import escape
 from zoneinfo import ZoneInfo
 
 from aiogram import Bot, F, Router
+from aiogram.exceptions import TelegramBadRequest
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message, User
@@ -19,35 +20,23 @@ from bot.constants import (
     STATUS_CANCELED,
     STATUS_IN_PROGRESS,
     STATUS_PENDING,
-    URGENCY_LABELS,
 )
 from bot.database.db import Database, Order
 from bot.handlers.common import CLIENT_HELP, CLIENT_START
 from bot.keyboards.admin import admin_order_keyboard
 from bot.keyboards.callbacks import ClientMenuCB, ClientOrderCB, CreateCB, PageCB
 from bot.keyboards.client import (
-    BTN_BACK,
     BTN_CANCEL,
-    BTN_EDIT_DESC,
-    BTN_EDIT_PHOTO,
-    BTN_EDIT_URGENCY,
-    BTN_EXTRAS,
     BTN_HELP,
     BTN_LIST,
     BTN_NEW,
-    BTN_SEND,
-    BTN_SKIP,
-    EXTRA_REPLY_FIELDS,
     client_list_keyboard,
     client_order_keyboard,
     client_reply_menu,
     confirm_keyboard,
-    description_reply_kb,
-    extra_input_reply_kb,
-    extras_reply_kb,
-    photo_reply_kb,
-    preview_reply_kb,
-    urgency_reply_kb,
+    field_prompt_keyboard,
+    order_form_keyboard,
+    urgency_menu_keyboard,
 )
 from bot.services.drafts import OrderDraft
 from bot.services.formatting import (
@@ -63,19 +52,11 @@ from bot.states.client import ClientClarify, OrderCreate, is_order_create
 router = Router(name="client")
 
 DESCRIPTION_PROMPT = (
-    "<b>Новая заявка</b>\n\n"
     "Напишите, что нужно найти: бренд, модель и важные детали.\n"
-    "Можно сразу прислать фото с подписью — бот заберёт и текст, и снимок."
+    "Можно прислать фото с подписью — бот заберёт и текст, и снимок."
 )
-PHOTO_PROMPT = (
-    "Пришлите одно фото товара.\n"
-    "Если фото нет, нажмите «Пропустить» внизу экрана."
-)
-URGENCY_PROMPT = "Насколько срочно нужен товар?"
-EXTRAS_PROMPT = (
-    "<b>Дополнительные параметры</b>\n\n"
-    "Любой пункт можно пропустить. «-» в поле очищает уже введённое значение."
-)
+PHOTO_PROMPT = "Пришлите одно фото товара. Сообщение останется в чате."
+URGENCY_PROMPT = "Насколько срочно нужен товар? Выберите кнопку ниже."
 EXTRA_PROMPTS = {
     "budget": "Укажите бюджет, например «до 5000 ₽».",
     "size": "Укажите размер.",
@@ -135,47 +116,80 @@ async def show_my_orders(
     await message.answer(text, reply_markup=keyboard)
 
 
-async def _show_preview(state: FSMContext, message: Message | None) -> None:
+async def _forget_menu_buttons(message: Message, state: FSMContext) -> None:
+    data = await state.get_data()
+    chat_id = data.get("menu_chat_id")
+    message_id = data.get("menu_message_id")
+    if not isinstance(chat_id, int) or not isinstance(message_id, int):
+        return
+    try:
+        await message.bot.edit_message_reply_markup(
+            chat_id=chat_id,
+            message_id=message_id,
+            reply_markup=None,
+        )
+    except TelegramBadRequest:
+        return
+
+
+async def _remember_menu(state: FSMContext, sent: Message) -> None:
+    await state.update_data(menu_chat_id=sent.chat.id, menu_message_id=sent.message_id)
+
+
+async def _show_order_menu(message: Message | None, state: FSMContext) -> None:
     if message is None:
         return
+    await _forget_menu_buttons(message, state)
     draft = OrderDraft.from_state(await state.get_data())
     await state.set_state(OrderCreate.preview)
-    await state.update_data(return_to_preview=False)
-    await message.answer(format_client_preview(draft), reply_markup=preview_reply_kb())
+    sent = await message.answer(
+        format_client_preview(draft),
+        reply_markup=order_form_keyboard(draft),
+    )
+    await _remember_menu(state, sent)
 
 
 async def _ask_description(message: Message | None, state: FSMContext) -> None:
+    if message is None:
+        await state.set_state(OrderCreate.description)
+        return
+    await _forget_menu_buttons(message, state)
     await state.set_state(OrderCreate.description)
-    if message is not None:
-        await message.answer(DESCRIPTION_PROMPT, reply_markup=description_reply_kb())
+    sent = await message.answer(DESCRIPTION_PROMPT, reply_markup=field_prompt_keyboard())
+    await _remember_menu(state, sent)
 
 
 async def _ask_photo(message: Message | None, state: FSMContext) -> None:
+    if message is None:
+        await state.set_state(OrderCreate.photo)
+        return
+    await _forget_menu_buttons(message, state)
     await state.set_state(OrderCreate.photo)
-    if message is not None:
-        await message.answer(PHOTO_PROMPT, reply_markup=photo_reply_kb())
+    sent = await message.answer(PHOTO_PROMPT, reply_markup=field_prompt_keyboard())
+    await _remember_menu(state, sent)
 
 
 async def _ask_urgency(message: Message | None, state: FSMContext) -> None:
+    if message is None:
+        await state.set_state(OrderCreate.urgency)
+        return
+    await _forget_menu_buttons(message, state)
     await state.set_state(OrderCreate.urgency)
-    if message is not None:
-        await message.answer(URGENCY_PROMPT, reply_markup=urgency_reply_kb())
+    sent = await message.answer(URGENCY_PROMPT, reply_markup=urgency_menu_keyboard())
+    await _remember_menu(state, sent)
 
 
-def _step_keyboard(current: str | None):
-    if current == OrderCreate.description.state:
-        return description_reply_kb()
-    if current == OrderCreate.photo.state:
-        return photo_reply_kb()
-    if current == OrderCreate.urgency.state:
-        return urgency_reply_kb()
-    if current == OrderCreate.preview.state:
-        return preview_reply_kb()
-    if current == OrderCreate.extra.state:
-        return extra_input_reply_kb()
-    if current == ClientClarify.text.state:
-        return description_reply_kb()
-    return client_reply_menu()
+async def _ask_extra(message: Message | None, state: FSMContext, field: str) -> None:
+    await state.update_data(extra_field=field)
+    await state.set_state(OrderCreate.extra)
+    if message is None:
+        return
+    await _forget_menu_buttons(message, state)
+    sent = await message.answer(
+        f"{EXTRA_PROMPTS[field]}\n«-» очищает поле.",
+        reply_markup=field_prompt_keyboard(),
+    )
+    await _remember_menu(state, sent)
 
 
 def _image_file_id(message: Message) -> str | None:
@@ -215,7 +229,7 @@ async def cancel_button(message: Message, state: FSMContext) -> None:
 @router.message(F.text == BTN_NEW)
 async def new_button(message: Message, state: FSMContext) -> None:
     await state.clear()
-    await _ask_description(message, state)
+    await _show_order_menu(message, state)
 
 
 @router.message(F.text == BTN_LIST)
@@ -230,93 +244,12 @@ async def help_button(message: Message) -> None:
     await message.answer(CLIENT_HELP, reply_markup=client_reply_menu())
 
 
-@router.message(F.text == BTN_BACK)
-async def back_button(message: Message, state: FSMContext) -> None:
-    current = await state.get_state()
-    if current in {OrderCreate.preview.state, OrderCreate.extra.state}:
-        await _show_preview(state, message)
-        return
-    await message.answer("Меню.", reply_markup=client_reply_menu())
-
-
-@router.message(OrderCreate.photo, F.text == BTN_SKIP)
-async def skip_photo_button(message: Message, state: FSMContext) -> None:
-    draft = OrderDraft.from_state(await state.get_data())
-    if draft.return_to_preview:
-        await state.update_data(return_to_preview=False)
-        await _show_preview(state, message)
-        return
-    await state.update_data(user_photo_id=None)
-    await _ask_urgency(message, state)
-
-
-@router.message(OrderCreate.urgency, F.text.in_(set(URGENCY_LABELS.values())))
-async def urgency_button(message: Message, state: FSMContext) -> None:
-    if message.text is None:
-        return
-    code = next(key for key, label in URGENCY_LABELS.items() if label == message.text)
-    draft = OrderDraft.from_state(await state.get_data()).with_urgency(code)
-    await state.update_data(**draft.to_state())
-    await _show_preview(state, message)
-
-
-@router.message(OrderCreate.preview, F.text == BTN_EXTRAS)
-async def extras_button(message: Message, state: FSMContext) -> None:
-    await state.set_state(OrderCreate.preview)
-    await message.answer(EXTRAS_PROMPT, reply_markup=extras_reply_kb())
-
-
-@router.message(OrderCreate.preview, F.text == BTN_SEND)
-async def send_button(
-    message: Message,
-    state: FSMContext,
-    db: Database,
-    settings: Settings,
-    bot: Bot,
-) -> None:
-    if message.from_user is None:
-        return
-    order = await _submit_order(message, state, db, settings, bot, message.from_user)
-    if order is None:
-        await message.answer(
-            "Заполните описание и срочность.",
-            reply_markup=preview_reply_kb(),
-        )
-
-
-@router.message(OrderCreate.preview, F.text.in_(set(EXTRA_REPLY_FIELDS)))
-async def extra_field_button(message: Message, state: FSMContext) -> None:
-    if message.text is None:
-        return
-    field = FIELD_BY_ACTION[EXTRA_REPLY_FIELDS[message.text]]
-    await state.update_data(extra_field=field)
-    await state.set_state(OrderCreate.extra)
-    await message.answer(EXTRA_PROMPTS[field], reply_markup=extra_input_reply_kb())
-
-
-@router.message(OrderCreate.preview, F.text == BTN_EDIT_DESC)
-async def edit_description_button(message: Message, state: FSMContext) -> None:
-    await state.update_data(return_to_preview=True)
-    await _ask_description(message, state)
-
-
-@router.message(OrderCreate.preview, F.text == BTN_EDIT_PHOTO)
-async def edit_photo_button(message: Message, state: FSMContext) -> None:
-    await state.update_data(return_to_preview=True)
-    await _ask_photo(message, state)
-
-
-@router.message(OrderCreate.preview, F.text == BTN_EDIT_URGENCY)
-async def edit_urgency_button(message: Message, state: FSMContext) -> None:
-    await _ask_urgency(message, state)
-
-
 @router.callback_query(ClientMenuCB.filter(F.action == "new"))
 async def new_order(query: CallbackQuery, state: FSMContext) -> None:
     message = as_message(query.message)
     await state.clear()
     if message is not None:
-        await _ask_description(message, state)
+        await _show_order_menu(message, state)
     await query.answer()
 
 
@@ -373,29 +306,15 @@ async def cancel_create(query: CallbackQuery, state: FSMContext) -> None:
 
 @router.callback_query(CreateCB.filter(F.action == "skip_photo"))
 async def skip_photo(query: CallbackQuery, state: FSMContext) -> None:
-    draft = OrderDraft.from_state(await state.get_data())
-    message = as_message(query.message)
-    if draft.return_to_preview:
-        await state.update_data(return_to_preview=False)
-        await _show_preview(state, message)
-        await query.answer()
-        return
-    await state.update_data(user_photo_id=None)
-    await _ask_urgency(message, state)
+    await _show_order_menu(as_message(query.message), state)
     await query.answer()
 
 
 @router.callback_query(CreateCB.filter(F.action == "clear_photo"))
 async def clear_photo(query: CallbackQuery, state: FSMContext) -> None:
-    draft = OrderDraft.from_state(await state.get_data())
-    editing = draft.return_to_preview
-    draft = draft.with_photo(None)
-    await _store_draft(state, draft, return_to_preview=False)
-    message = as_message(query.message)
-    if editing:
-        await _show_preview(state, message)
-    else:
-        await _ask_urgency(message, state)
+    draft = OrderDraft.from_state(await state.get_data()).with_photo(None)
+    await _store_draft(state, draft)
+    await _show_order_menu(as_message(query.message), state)
     await query.answer("Фото убрано")
 
 
@@ -410,17 +329,14 @@ async def choose_urgency(
     except ValueError as exc:
         await query.answer(str(exc), show_alert=True)
         return
-    await state.update_data(**draft.to_state())
-    await _show_preview(state, as_message(query.message))
+    await _store_draft(state, draft)
+    await _show_order_menu(as_message(query.message), state)
     await query.answer()
 
 
 @router.callback_query(CreateCB.filter(F.action == "extras"))
 async def open_extras(query: CallbackQuery, state: FSMContext) -> None:
-    await state.set_state(OrderCreate.preview)
-    message = as_message(query.message)
-    if message is not None:
-        await message.answer(EXTRAS_PROMPT, reply_markup=extras_reply_kb())
+    await _show_order_menu(as_message(query.message), state)
     await query.answer()
 
 
@@ -434,30 +350,24 @@ async def ask_extra(
     if field is None:
         await query.answer("Неизвестное поле", show_alert=True)
         return
-    await state.update_data(extra_field=field)
-    await state.set_state(OrderCreate.extra)
-    message = as_message(query.message)
-    if message is not None:
-        await message.answer(EXTRA_PROMPTS[field], reply_markup=extra_input_reply_kb())
+    await _ask_extra(as_message(query.message), state, field)
     await query.answer()
 
 
 @router.callback_query(CreateCB.filter(F.action == "back"))
 async def back_to_preview(query: CallbackQuery, state: FSMContext) -> None:
-    await _show_preview(state, as_message(query.message))
+    await _show_order_menu(as_message(query.message), state)
     await query.answer()
 
 
 @router.callback_query(CreateCB.filter(F.action == "edit_desc"))
 async def edit_description(query: CallbackQuery, state: FSMContext) -> None:
-    await state.update_data(return_to_preview=True)
     await _ask_description(as_message(query.message), state)
     await query.answer()
 
 
 @router.callback_query(CreateCB.filter(F.action == "edit_photo"))
 async def edit_photo(query: CallbackQuery, state: FSMContext) -> None:
-    await state.update_data(return_to_preview=True)
     await _ask_photo(as_message(query.message), state)
     await query.answer()
 
@@ -539,37 +449,36 @@ async def _submit_order(
     return order
 
 
+def _with_caption(draft: OrderDraft, caption: str) -> OrderDraft:
+    text = caption.strip()
+    if len(text) < 3 or draft.description.strip():
+        return draft
+    try:
+        return draft.with_description(text)
+    except ValueError:
+        return draft
+
+
 @router.message(OrderCreate.description, F.photo)
 @router.message(OrderCreate.description, F.document)
 async def save_description_media(message: Message, state: FSMContext) -> None:
     file_id = _image_file_id(message)
     if file_id is None:
+        await message.answer(DESCRIPTION_PROMPT, reply_markup=field_prompt_keyboard())
+        return
+    draft = _with_caption(
+        OrderDraft.from_state(await state.get_data()).with_photo(file_id),
+        message.caption or "",
+    )
+    if not draft.description.strip():
+        await state.update_data(user_photo_id=file_id)
         await message.answer(
-            "Напишите описание текстом или пришлите фото с подписью.",
-            reply_markup=description_reply_kb(),
+            "Фото сохранил. Теперь напишите текстом, что нужно найти.",
+            reply_markup=field_prompt_keyboard(),
         )
         return
-    caption = (message.caption or "").strip()
-    draft = OrderDraft.from_state(await state.get_data())
-    if len(caption) >= 3:
-        try:
-            draft = draft.with_description(caption).with_photo(file_id)
-        except ValueError as exc:
-            await state.update_data(user_photo_id=file_id)
-            await message.answer(str(exc), reply_markup=description_reply_kb())
-            return
-        editing = draft.return_to_preview
-        await _store_draft(state, draft, return_to_preview=False)
-        if editing:
-            await _show_preview(state, message)
-        else:
-            await _ask_urgency(message, state)
-        return
-    await state.update_data(user_photo_id=file_id)
-    await message.answer(
-        "Фото сохранил. Теперь напишите текстом, что нужно найти.",
-        reply_markup=description_reply_kb(),
-    )
+    await _store_draft(state, draft)
+    await _show_order_menu(message, state)
 
 
 @router.message(OrderCreate.description, F.text)
@@ -579,26 +488,15 @@ async def save_description(message: Message, state: FSMContext) -> None:
     try:
         draft = OrderDraft.from_state(await state.get_data()).with_description(message.text)
     except ValueError as exc:
-        await message.answer(str(exc), reply_markup=description_reply_kb())
+        await message.answer(str(exc), reply_markup=field_prompt_keyboard())
         return
-    editing = draft.return_to_preview
-    has_photo = bool(draft.user_photo_id)
-    await _store_draft(state, draft, return_to_preview=False)
-    if editing:
-        await _show_preview(state, message)
-        return
-    if has_photo:
-        await _ask_urgency(message, state)
-        return
-    await _ask_photo(message, state)
+    await _store_draft(state, draft)
+    await _show_order_menu(message, state)
 
 
 @router.message(OrderCreate.description)
-async def description_expected(message: Message) -> None:
-    await message.answer(
-        "Напишите описание текстом или пришлите фото с подписью.",
-        reply_markup=description_reply_kb(),
-    )
+async def description_expected(message: Message, state: FSMContext) -> None:
+    await _ask_description(message, state)
 
 
 @router.message(OrderCreate.photo, F.photo)
@@ -606,31 +504,24 @@ async def description_expected(message: Message) -> None:
 async def save_photo(message: Message, state: FSMContext) -> None:
     file_id = _image_file_id(message)
     if file_id is None:
-        await message.answer(
-            "Пришлите фотографию или нажмите «Пропустить».",
-            reply_markup=photo_reply_kb(),
-        )
+        await message.answer(PHOTO_PROMPT, reply_markup=field_prompt_keyboard())
         return
-    draft = OrderDraft.from_state(await state.get_data()).with_photo(file_id)
-    editing = draft.return_to_preview
-    await _store_draft(state, draft, return_to_preview=False)
-    if editing:
-        await _show_preview(state, message)
-        return
-    await _ask_urgency(message, state)
+    draft = _with_caption(
+        OrderDraft.from_state(await state.get_data()).with_photo(file_id),
+        message.caption or "",
+    )
+    await _store_draft(state, draft)
+    await _show_order_menu(message, state)
 
 
 @router.message(OrderCreate.photo)
-async def photo_expected(message: Message) -> None:
-    await message.answer(
-        "Пришлите фотографию или нажмите «Пропустить».",
-        reply_markup=photo_reply_kb(),
-    )
+async def photo_expected(message: Message, state: FSMContext) -> None:
+    await _ask_photo(message, state)
 
 
 @router.message(OrderCreate.urgency)
-async def urgency_expected(message: Message) -> None:
-    await message.answer(URGENCY_PROMPT, reply_markup=urgency_reply_kb())
+async def urgency_expected(message: Message, state: FSMContext) -> None:
+    await _ask_urgency(message, state)
 
 
 @router.message(OrderCreate.extra, F.text)
@@ -639,31 +530,44 @@ async def save_extra(message: Message, state: FSMContext) -> None:
         return
     field = (await state.get_data()).get("extra_field")
     if not isinstance(field, str):
-        await _show_preview(state, message)
+        await _show_order_menu(message, state)
         return
     try:
         draft = OrderDraft.from_state(await state.get_data()).with_extra(field, message.text)
     except ValueError as exc:
-        await message.answer(str(exc), reply_markup=extra_input_reply_kb())
+        await message.answer(str(exc), reply_markup=field_prompt_keyboard())
         return
     await state.update_data(**draft.to_state(), extra_field=None)
-    await _show_preview(state, message)
+    await _show_order_menu(message, state)
 
 
 @router.message(OrderCreate.extra)
-async def extra_expected(message: Message) -> None:
-    await message.answer(
-        "Пришлите значение текстом или нажмите «Назад».",
-        reply_markup=extra_input_reply_kb(),
+async def extra_expected(message: Message, state: FSMContext) -> None:
+    field = (await state.get_data()).get("extra_field")
+    if isinstance(field, str) and field in EXTRA_PROMPTS:
+        await _ask_extra(message, state, field)
+        return
+    await _show_order_menu(message, state)
+
+
+@router.message(OrderCreate.preview, F.photo)
+@router.message(OrderCreate.preview, F.document)
+async def preview_photo(message: Message, state: FSMContext) -> None:
+    file_id = _image_file_id(message)
+    if file_id is None:
+        await _show_order_menu(message, state)
+        return
+    draft = _with_caption(
+        OrderDraft.from_state(await state.get_data()).with_photo(file_id),
+        message.caption or "",
     )
+    await _store_draft(state, draft)
+    await _show_order_menu(message, state)
 
 
 @router.message(OrderCreate.preview)
-async def preview_hint(message: Message) -> None:
-    await message.answer(
-        "Проверьте заявку и нажмите кнопку внизу экрана.",
-        reply_markup=preview_reply_kb(),
-    )
+async def preview_hint(message: Message, state: FSMContext) -> None:
+    await _show_order_menu(message, state)
 
 
 @router.callback_query(ClientOrderCB.filter(F.action == "open"))
@@ -834,8 +738,7 @@ async def ask_clarification(
     message = as_message(query.message)
     if message is not None:
         await message.answer(
-            f"Напишите вопрос по заявке #{order.id}. Кнопка «Отмена» сбрасывает вопрос.",
-            reply_markup=description_reply_kb(),
+            f"Напишите вопрос по заявке #{order.id}. /cancel — отмена."
         )
     await query.answer()
 
@@ -884,10 +787,7 @@ async def save_clarification(
 
 @router.message(ClientClarify.text)
 async def clarification_expected(message: Message) -> None:
-    await message.answer(
-        "Пришлите вопрос текстом.",
-        reply_markup=description_reply_kb(),
-    )
+    await message.answer("Пришлите вопрос текстом. /cancel — отмена.")
 
 
 @router.message()
@@ -895,11 +795,13 @@ async def client_fallback(message: Message, state: FSMContext) -> None:
     if message.from_user is None:
         return
     current = await state.get_state()
-    if current:
+    if is_order_create(current):
         await message.answer(
-            "Используйте кнопки внизу экрана или пришлите то, что бот запросил.",
-            reply_markup=_step_keyboard(current),
+            "Нажмите кнопку в сообщении с заявкой или пришлите то, что бот запросил."
         )
+        return
+    if current:
+        await message.answer("Пришлите сообщение текстом или нажмите /cancel.")
         return
     await message.answer("Выберите действие в меню.", reply_markup=client_reply_menu())
 

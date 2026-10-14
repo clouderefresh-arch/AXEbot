@@ -11,6 +11,7 @@ from aiogram.types import (
 
 from bot.constants import URGENCY_LABELS, URGENCY_LOW, URGENCY_MEDIUM, URGENCY_URGENT
 from bot.database.db import Order
+from bot.services.drafts import OrderDraft
 from bot.keyboards.callbacks import (
     ClientMenuCB,
     ClientOrderCB,
@@ -139,6 +140,98 @@ def urgency_keyboard() -> InlineKeyboardMarkup:
                 )
             ],
             [_CANCEL],
+        ]
+    )
+
+
+def _filled(title: str, value: str | None, *, add: str) -> str:
+    return f"Изменить {title}" if value else add
+
+
+def order_form_keyboard(draft: OrderDraft) -> InlineKeyboardMarkup:
+    """Меню заявки прямо в сообщении: каждое поле открывается кнопкой."""
+
+    rows: list[list[InlineKeyboardButton]] = [
+        [
+            inline_button(
+                _filled("описание", draft.description.strip() or None, add="Добавить описание"),
+                CreateCB(action="edit_desc"),
+            )
+        ],
+        [
+            inline_button(
+                _filled("фото", draft.user_photo_id, add="Добавить фото"),
+                CreateCB(action="edit_photo"),
+            )
+        ],
+    ]
+    if draft.user_photo_id:
+        rows.append([inline_button("Удалить фото", CreateCB(action="clear_photo"))])
+    rows.append(
+        [
+            inline_button(
+                _filled("срочность", draft.urgency, add="Добавить срочность"),
+                CreateCB(action="edit_urgency"),
+            )
+        ]
+    )
+    rows.append(
+        [
+            inline_button(
+                _filled("бюджет", draft.budget, add="Добавить бюджет"),
+                CreateCB(action="field", value="budget"),
+            ),
+            inline_button(
+                _filled("размер", draft.size, add="Добавить размер"),
+                CreateCB(action="field", value="size"),
+            ),
+        ]
+    )
+    rows.append(
+        [
+            inline_button(
+                _filled("цвет", draft.color, add="Добавить цвет"),
+                CreateCB(action="field", value="color"),
+            ),
+            inline_button(
+                _filled("ссылку", draft.reference_link, add="Добавить ссылку"),
+                CreateCB(action="field", value="link"),
+            ),
+        ]
+    )
+    rows.append([inline_button("Отправить заявку", CreateCB(action="send"))])
+    rows.append([_CANCEL])
+    return InlineKeyboardMarkup(inline_keyboard=rows)
+
+
+def field_prompt_keyboard() -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(
+        inline_keyboard=[[inline_button("Назад к заявке", CreateCB(action="back"))]]
+    )
+
+
+def urgency_menu_keyboard() -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                inline_button(
+                    URGENCY_LABELS[URGENCY_URGENT],
+                    CreateCB(action="urgency", value=URGENCY_URGENT),
+                )
+            ],
+            [
+                inline_button(
+                    URGENCY_LABELS[URGENCY_MEDIUM],
+                    CreateCB(action="urgency", value=URGENCY_MEDIUM),
+                )
+            ],
+            [
+                inline_button(
+                    URGENCY_LABELS[URGENCY_LOW],
+                    CreateCB(action="urgency", value=URGENCY_LOW),
+                )
+            ],
+            [inline_button("Назад к заявке", CreateCB(action="back"))],
         ]
     )
 

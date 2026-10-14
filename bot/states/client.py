@@ -6,7 +6,7 @@ from aiogram.fsm.state import State, StatesGroup
 
 
 class OrderCreate(StatesGroup):
-    """Мастер заявки: описание, фото, срочность, предпросмотр, доп. поля."""
+    """Меню заявки и ввод одного поля после нажатия кнопки."""
 
     description = State()
     photo = State()
