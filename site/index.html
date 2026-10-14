@@ -3,7 +3,11 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Страница из блоков</title>
+    <title>AXEbot — страница из блоков</title>
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%231d4ed8'/%3E%3C/svg%3E"
+    />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -13,7 +17,14 @@
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
-    <p class="hud" id="hud" aria-live="polite">Жду колесо или свайп</p>
+    <header class="nav">
+      <a class="mark" href="#page" data-scroll>AXEbot</a>
+      <nav class="nav-links" aria-label="Разделы">
+        <a href="#assemble" data-scroll>Сборка</a>
+        <a href="#layers" data-scroll>Слои</a>
+      </nav>
+      <p class="hud" id="hud" aria-live="polite">Жду колесо или свайп</p>
+    </header>
     <div id="smooth-wrapper">
       <div id="smooth-content">
         <div id="page">
