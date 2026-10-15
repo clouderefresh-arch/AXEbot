@@ -79,7 +79,23 @@ const closeReader = () => {
 };
 
 document.querySelectorAll(".topic").forEach((button) => {
+  const line = button.querySelector(".topic-line");
+  const icon = button.querySelector(".topic-press");
+  const show = () => {
+    if (prefersReduce()) return;
+    gsap.to(line, { scaleX: 1, duration: 0.45, ease: "power2.out", overwrite: "auto" });
+    gsap.to(icon, { y: 3, duration: 0.35, ease: "power2.out", overwrite: "auto" });
+  };
+  const hide = () => {
+    if (prefersReduce()) return;
+    gsap.to(line, { scaleX: 0, duration: 0.3, ease: "power2.in", overwrite: "auto" });
+    gsap.to(icon, { y: 0, duration: 0.35, ease: "power2.out", overwrite: "auto" });
+  };
   button.addEventListener("click", () => openReader(button));
+  button.addEventListener("pointerenter", show);
+  button.addEventListener("pointerleave", hide);
+  button.addEventListener("focus", show);
+  button.addEventListener("blur", hide);
 });
 
 readerClose.addEventListener("click", closeReader);
@@ -136,6 +152,42 @@ mm.add("(prefers-reduced-motion: no-preference)", () => {
     },
   });
 
+  const spine = gsap.fromTo(
+    ".pass-spine",
+    { scaleY: () => window.innerHeight / document.documentElement.scrollHeight },
+    {
+      scaleY: 1,
+      ease: "none",
+      scrollTrigger: {
+        trigger: document.body,
+        start: "top top",
+        end: "bottom bottom",
+        scrub: 0.6,
+      },
+    }
+  );
+
+  const crosses = gsap.utils.toArray(".pass-h").map((line) =>
+    gsap.to(line, {
+      scaleX: 1,
+      ease: "none",
+      scrollTrigger: {
+        trigger: line.parentElement,
+        start: "top 80%",
+        end: "top 35%",
+        scrub: 0.6,
+      },
+    })
+  );
+
+  const tap = gsap.to(".press-dot", {
+    scale: 0.55,
+    duration: 0.9,
+    repeat: -1,
+    yoyo: true,
+    ease: "sine.inOut",
+  });
+
   gsap.set(".rise", { y: 22, autoAlpha: 0 });
   const batch = ScrollTrigger.batch(".rise", {
     start: "top 86%",
@@ -156,6 +208,9 @@ mm.add("(prefers-reduced-motion: no-preference)", () => {
     intro.kill();
     glow.kill();
     drift.kill();
+    spine.kill();
+    tap.kill();
+    crosses.forEach((item) => item.kill());
     batch.forEach((item) => item.kill());
     gsap.set(".rise", { clearProps: "all" });
   };
