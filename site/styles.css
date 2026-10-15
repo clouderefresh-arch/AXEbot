@@ -17,12 +17,15 @@
 }
 
 html {
+  overflow-x: clip;
   scroll-behavior: auto;
+  scroll-padding-top: var(--mast, 64px);
 }
 
 body {
   position: relative;
   margin: 0;
+  overflow-x: clip;
   background: var(--curtain);
   color: var(--shirt);
   font-family: Commissioner, "Segoe UI", sans-serif;
@@ -56,12 +59,12 @@ a {
   top: 0;
   left: 0;
   right: 0;
-  padding: 10px clamp(24px, 4vw, 48px) 8px;
+  padding: 10px clamp(16px, 4vw, 48px) 8px;
   color: var(--shirt);
   font-weight: 400;
   font-size: 13px;
   line-height: 1.2;
-  background: transparent;
+  background: var(--curtain);
 }
 
 .mast-row {
@@ -74,8 +77,10 @@ a {
 
 .mast-row a,
 .mast-row p {
+  min-width: 0;
   font-weight: 400;
   text-decoration: none;
+  overflow-wrap: anywhere;
 }
 
 .mast-row a:first-child {
@@ -153,6 +158,7 @@ a {
   height: 100svh;
   min-height: 100svh;
   overflow: visible;
+  padding-top: var(--mast, 64px);
   background: transparent;
 }
 
@@ -239,6 +245,7 @@ h1 {
   display: flex;
   align-items: center;
   min-height: 100svh;
+  padding-top: var(--mast, 64px);
   background: transparent;
 }
 
@@ -286,7 +293,8 @@ h2 {
 .hod {
   position: relative;
   z-index: 1;
-  padding-block: clamp(96px, 12vw, 150px);
+  padding-top: calc(var(--mast, 64px) + 56px);
+  padding-bottom: clamp(72px, 10vw, 140px);
   color: var(--shirt);
   background: transparent;
 }
@@ -594,9 +602,15 @@ body.is-reading > :not(.reader) {
 }
 
 @media (max-width: 860px) {
+  .mast {
+    padding: 8px 16px 6px;
+    font-size: 12px;
+  }
+
   .mast-row {
     grid-template-columns: 1fr;
-    gap: 6px;
+    gap: 3px;
+    padding-block: 5px;
   }
 
   .hair-v {
@@ -609,23 +623,40 @@ body.is-reading > :not(.reader) {
     justify-self: start;
   }
 
+  h1 {
+    max-width: none;
+    font-size: 40px;
+  }
+
+  h2 {
+    font-size: 32px;
+  }
+
+  .line {
+    font-size: 22px;
+  }
+
   .room {
     grid-template-columns: 1fr;
     align-items: start;
     height: auto;
     min-height: auto;
     overflow: visible;
-    padding-top: 112px;
+    padding-top: calc(var(--mast, 96px) + 12px);
   }
 
   .room-copy {
-    padding-top: 8px;
-    padding-bottom: 8px;
+    padding-top: 4px;
+    padding-bottom: 20px;
+  }
+
+  .room-copy .lead {
+    margin-top: 16px;
   }
 
   .portrait-wrap {
-    height: 82svh;
-    min-height: 520px;
+    height: 68svh;
+    min-height: 360px;
   }
 
   .portrait-wrap img {
@@ -636,8 +667,22 @@ body.is-reading > :not(.reader) {
     background: linear-gradient(180deg, var(--curtain) 0%, rgba(26, 18, 14, 0.82) 16%, transparent 48%);
   }
 
-  .hod {
-    padding-top: 128px;
+  .kak {
+    align-items: flex-start;
+    min-height: 0;
+    padding-top: calc(var(--mast, 96px) + 28px);
+    padding-bottom: 64px;
+  }
+
+  .kak-inner,
+  .sheet {
+    padding-inline: 16px;
+  }
+
+  .story {
+    gap: 16px;
+    margin-top: 24px;
+    min-height: 0;
   }
 
   .sheet-head,
@@ -654,8 +699,38 @@ body.is-reading > :not(.reader) {
     padding-bottom: 18px;
   }
 
+  .topic-name {
+    font-size: 22px;
+  }
+
+  .contact > div {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .contact .btn,
+  .contact .btn-quiet {
+    width: 100%;
+  }
+
   .btn-quiet {
     margin-left: 0;
+  }
+
+  .reader {
+    align-items: end;
+    padding: 12px;
+  }
+
+  .reader-sheet {
+    max-height: 88svh;
+    padding: 18px 16px 28px;
+  }
+
+  .reader-sheet h2 {
+    font-size: 28px;
   }
 }
 

@@ -4,6 +4,20 @@
 gsap.registerPlugin(ScrollTrigger, ScrollToPlugin);
 gsap.defaults({ duration: 0.45, ease: "power2.out" });
 
+const mast = document.querySelector("#mast");
+const syncMast = () => {
+  document.documentElement.style.setProperty("--mast", `${mast.offsetHeight}px`);
+};
+syncMast();
+window.addEventListener("resize", () => {
+  syncMast();
+  ScrollTrigger.refresh();
+});
+document.fonts?.ready.then(() => {
+  syncMast();
+  ScrollTrigger.refresh();
+});
+
 const prefersReduce = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 const scrollToId = (id) => {
@@ -16,7 +30,7 @@ const scrollToId = (id) => {
   gsap.to(window, {
     duration: 0.8,
     ease: "power2.inOut",
-    scrollTo: { y: id, offsetY: 0 },
+    scrollTo: { y: id, offsetY: document.querySelector("#mast").offsetHeight },
   });
 };
 
