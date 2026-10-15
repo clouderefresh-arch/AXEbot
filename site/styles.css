@@ -603,24 +603,23 @@ body.is-reading > :not(.reader) {
 
 @media (max-width: 860px) {
   .mast {
-    padding: 8px 16px 6px;
-    font-size: 12px;
+    padding: 6px 10px 4px;
+    font-size: clamp(8.5px, 2.75vw, 13px);
   }
 
   .mast-row {
-    grid-template-columns: 1fr;
-    gap: 3px;
-    padding-block: 5px;
-  }
-
-  .hair-v {
-    display: none;
+    gap: clamp(4px, 1.2vw, 12px);
+    padding-block: 6px;
   }
 
   .mast-row a,
-  .mast-row p,
-  .mast-row a:last-child {
-    justify-self: start;
+  .mast-row p {
+    white-space: nowrap;
+    overflow-wrap: normal;
+  }
+
+  .hair-v {
+    height: 12px;
   }
 
   h1 {
