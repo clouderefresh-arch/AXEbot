@@ -136,13 +136,6 @@ mm.add("(prefers-reduced-motion: no-preference)", () => {
     },
   });
 
-  const paper = ScrollTrigger.create({
-    trigger: "#hod",
-    start: "top 70px",
-    onEnter: () => document.querySelector("#mast").classList.add("is-paper"),
-    onLeaveBack: () => document.querySelector("#mast").classList.remove("is-paper"),
-  });
-
   gsap.set(".rise", { y: 22, autoAlpha: 0 });
   const batch = ScrollTrigger.batch(".rise", {
     start: "top 86%",
@@ -163,7 +156,6 @@ mm.add("(prefers-reduced-motion: no-preference)", () => {
     intro.kill();
     glow.kill();
     drift.kill();
-    paper.kill();
     batch.forEach((item) => item.kill());
     gsap.set(".rise", { clearProps: "all" });
   };
