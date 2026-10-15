@@ -12,19 +12,25 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Commissioner:wght@400;500;600&family=Literata:opsz,wght@16..72,560;16..72,650&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Commissioner:wght@400;500&family=Literata:opsz,wght@16..72,560;16..72,650&display=swap"
       rel="stylesheet"
     />
     <link rel="stylesheet" href="styles.css" />
-    <script>document.documentElement.classList.add("js");</script>
   </head>
   <body>
-    <section class="room" id="room">
-      <div class="bar">
+    <header class="mast" id="mast">
+      <i class="hair hair-h"></i>
+      <div class="mast-row">
         <a href="tel:+79680452104">8 (968) 045-21-04</a>
+        <i class="hair hair-v"></i>
+        <a href="#room">Практика с 1995</a>
+        <i class="hair hair-v"></i>
         <p>Силикат, 41, офис 311</p>
       </div>
+      <i class="hair hair-h"></i>
+    </header>
 
+    <section class="room" id="room">
       <div class="room-copy">
         <h1>Выиграть суд<br />без адвоката?</h1>
         <p class="lead">
@@ -46,85 +52,85 @@
     </section>
 
     <section class="kak" id="kak">
-      <div class="column">
+      <div class="kak-inner">
         <h2>Рассказываю как</h2>
-        <p class="lead">Отметьте три условия. После этого откроется ход дела.</p>
-        <div class="meter" aria-hidden="true"><span id="meter-fill"></span></div>
-        <div class="clauses">
-          <button type="button" class="clause" aria-pressed="false">
-            <span class="mark" aria-hidden="true"><i></i></span>
-            <span>Скажу прямо, есть ли у требований перспектива</span>
-          </button>
-          <button type="button" class="clause" aria-pressed="false">
-            <span class="mark" aria-hidden="true"><i></i></span>
-            <span>Претензию и иск готовлю я</span>
-          </button>
-          <button type="button" class="clause" aria-pressed="false">
-            <span class="mark" aria-hidden="true"><i></i></span>
-            <span>В суд документы несёте вы</span>
-          </button>
+        <p class="lead">Листайте вниз. Фразы соберутся по линии, и откроется ход дела.</p>
+        <div class="story">
+          <i class="story-rule"></i>
+          <div class="lines">
+            <p class="line">Скажу прямо, есть ли у требований перспектива.</p>
+            <p class="line">Претензию и иск готовлю я.</p>
+            <p class="line">В суд документы несёте вы.</p>
+          </div>
         </div>
-        <p class="count" id="count" aria-live="polite">Отмечено 0 из 3</p>
-        <button class="btn" id="open-hod" type="button" disabled>Открыть ход дела</button>
       </div>
     </section>
 
-    <section class="hod" id="hod">
-      <div class="column">
-        <h2>Как это возможно</h2>
-        <p class="lead">
-          В моей практике около 80% дел можно закрыть без представителя в зале.
-          Дорогой статус и лишние выезды в суд цену не оправдывают: законы одни,
-          а по многим спорам решение уже есть в практике.
-        </p>
+    <div class="seam" aria-hidden="true"></div>
 
-        <h3>Что вы получаете</h3>
-        <ul>
-          <li>Разбор документов и прямой ответ: перспектива есть или нет.</li>
-          <li>Досудебную претензию, если она нужна, и исковое заявление.</li>
-          <li>Комплект копий по числу участников процесса.</li>
-        </ul>
-        <p>
+    <section class="hod" id="hod">
+      <div class="sheet">
+        <div class="sheet-head rise">
+          <h2>Как это возможно</h2>
+          <p>
+            В моей практике около 80% дел можно закрыть без представителя в зале.
+            Дорогой статус и лишние выезды в суд цену не оправдывают: законы одни,
+            а по многим спорам решение уже есть в практике.
+          </p>
+        </div>
+
+        <h3 class="rise">Что вы получаете</h3>
+        <div class="gets">
+          <article class="rise">
+            <p>Разбор документов и прямой ответ: перспектива есть или нет.</p>
+          </article>
+          <article class="rise">
+            <p>Досудебную претензию, если она нужна, и исковое заявление.</p>
+          </article>
+          <article class="rise">
+            <p>Комплект копий по числу участников процесса.</p>
+          </article>
+        </div>
+        <p class="note rise">
           С этим пакетом вы едете в суд сами. К нему можно приложить просьбу
           рассмотреть дело без вашего участия. На такую просьбу уходит около минуты.
         </p>
 
-        <h3>Ход дела</h3>
+        <h3 class="rise">Ход дела</h3>
         <ol class="steps">
-          <li>
+          <li class="rise">
             Письмо на
             <a href="mailto:praktik.2022@mail.ru?subject=Дело">praktik.2022@mail.ru</a>:
             суть, нюансы, имя и телефон. Разбор за 48 часов.
           </li>
-          <li>
+          <li class="rise">
             Если перспектива есть, договариваемся о встрече в офисе или вы
             присылаете копии документов на почту.
           </li>
-          <li>Сверяю позицию с документами и присылаю договор.</li>
-          <li>Вы оплачиваете половину суммы по договору.</li>
-          <li>
-            Готовлю претензию, иск, отзыв или возражение и пакеты копий.
-          </li>
-          <li>Оплачиваете остаток и забираете готовые документы.</li>
-          <li>
-            Подаёте их в суд. Телефон остаётся на связи, если что-то пойдёт не так.
-          </li>
-          <li>Присылаете фото решения суда.</li>
+          <li class="rise">Сверяю позицию с документами и присылаю договор.</li>
+          <li class="rise">Вы оплачиваете половину суммы по договору.</li>
+          <li class="rise">Готовлю претензию, иск, отзыв или возражение и пакеты копий.</li>
+          <li class="rise">Оплачиваете остаток и забираете готовые документы.</li>
+          <li class="rise">Подаёте их в суд. Телефон остаётся на связи, если что-то пойдёт не так.</li>
+          <li class="rise">Присылаете фото решения суда.</li>
         </ol>
 
-        <h3>Если суд откажет по всем требованиям</h3>
-        <p>
-          Оплату по договору возвращаю. Это условие уже стоит в договорах
-          клиентов.
-        </p>
-        <p>
-          Если нужен юрист прямо в зале, это тоже можно: первая инстанция,
-          апелляция, кассация и Верховный суд.
-        </p>
+        <div class="split rise">
+          <div>
+            <h3>Если суд откажет по всем требованиям</h3>
+            <p>Оплату по договору возвращаю. Это условие уже стоит в договорах клиентов.</p>
+          </div>
+          <div>
+            <h3>Если нужен юрист в зале</h3>
+            <p>Это тоже можно: первая инстанция, апелляция, кассация и Верховный суд.</p>
+          </div>
+        </div>
 
-        <div class="contact">
-          <a class="btn" href="tel:+79680452104">Позвонить</a>
-          <a class="btn btn-quiet" href="mailto:praktik.2022@mail.ru?subject=Дело">Написать о деле</a>
+        <div class="contact rise">
+          <div>
+            <a class="btn" href="tel:+79680452104">Позвонить</a>
+            <a class="btn btn-quiet" href="mailto:praktik.2022@mail.ru?subject=Дело">Написать о деле</a>
+          </div>
           <p>8 (968) 045-21-04</p>
           <p>Силикат, 41, офис 311</p>
         </div>

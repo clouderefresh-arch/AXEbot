@@ -1,6 +1,6 @@
-/* Premium motion: one entrance, then only the answer to a tap.
-   gsap-core, gsap-timeline, gsap-scrolltrigger, ScrollTo from gsap-plugins.
-   Transforms and autoAlpha only. matchMedia covers reduced motion. */
+/* Premium: тонкие линии шапки, сборка фраз по прокрутке, вход бумаги.
+   gsap-core, gsap-timeline, gsap-scrolltrigger, ScrollTo.
+   Только transform и autoAlpha. */
 gsap.registerPlugin(ScrollTrigger, ScrollToPlugin);
 gsap.defaults({ duration: 0.45, ease: "power2.out" });
 
@@ -14,7 +14,7 @@ const scrollToId = (id) => {
     return;
   }
   gsap.to(window, {
-    duration: 0.7,
+    duration: 0.8,
     ease: "power2.inOut",
     scrollTo: { y: id, offsetY: 0 },
   });
@@ -25,52 +25,9 @@ document.querySelector("#to-kak").addEventListener("click", (event) => {
   scrollToId("#kak");
 });
 
-const clauses = [...document.querySelectorAll(".clause")];
-const meter = document.querySelector("#meter-fill");
-const count = document.querySelector("#count");
-const openHod = document.querySelector("#open-hod");
-const hod = document.querySelector("#hod");
-
-const marked = () => clauses.filter((button) => button.getAttribute("aria-pressed") === "true").length;
-
-const paintMeter = () => {
-  const done = marked();
-  count.textContent = `Отмечено ${done} из 3`;
-  openHod.disabled = done < 3;
-  if (prefersReduce()) {
-    gsap.set(meter, { scaleX: done / 3 });
-    return;
-  }
-  gsap.to(meter, {
-    scaleX: done / 3,
-    duration: 0.4,
-    ease: "power2.out",
-    overwrite: "auto",
-  });
-};
-
-clauses.forEach((button) => {
-  const mark = button.querySelector(".mark i");
-  button.addEventListener("click", () => {
-    const next = button.getAttribute("aria-pressed") !== "true";
-    button.setAttribute("aria-pressed", next ? "true" : "false");
-    if (prefersReduce()) {
-      gsap.set(mark, { scale: next ? 1 : 0 });
-    } else {
-      gsap.to(mark, {
-        scale: next ? 1 : 0,
-        duration: 0.2,
-        ease: "power2.out",
-        overwrite: "auto",
-      });
-    }
-    paintMeter();
-  });
-});
-
 document.querySelectorAll(".btn").forEach((button) => {
   button.addEventListener("pointerdown", () => {
-    if (button.disabled || prefersReduce()) return;
+    if (prefersReduce()) return;
     gsap.to(button, { scale: 0.98, duration: 0.12, ease: "power2.out", overwrite: "auto" });
   });
   const release = () => {
@@ -81,30 +38,17 @@ document.querySelectorAll(".btn").forEach((button) => {
   button.addEventListener("pointerleave", release);
 });
 
-openHod.addEventListener("click", () => {
-  if (openHod.disabled) return;
-  const firstOpen = !hod.classList.contains("is-open");
-  hod.classList.add("is-open");
-  if (firstOpen && !prefersReduce()) {
-    gsap.from("#hod .column", {
-      y: 24,
-      autoAlpha: 0,
-      duration: 0.6,
-      ease: "power2.out",
-    });
-  }
-  ScrollTrigger.refresh();
-  scrollToId("#hod");
-});
-
 const mm = gsap.matchMedia();
 
 mm.add("(prefers-reduced-motion: no-preference)", () => {
   const intro = gsap.timeline({ defaults: { ease: "power2.out" } });
   intro
+    .from(".hair-h", { scaleX: 0, duration: 0.8, stagger: 0.08 }, 0)
+    .from(".hair-v", { scaleY: 0, duration: 0.5, stagger: 0.06 }, 0.15)
+    .from(".mast-row a, .mast-row p", { autoAlpha: 0, duration: 0.4, stagger: 0.05 }, 0.2)
     .from(".portrait-wrap img", { scale: 1.05, duration: 1.1 }, 0)
-    .from(".room-copy h1", { y: 24, autoAlpha: 0, duration: 0.7 }, 0.12)
-    .from(".room-copy .lead, #to-kak", { y: 16, autoAlpha: 0, duration: 0.5, stagger: 0.08 }, 0.28);
+    .from(".room-copy h1", { y: 24, autoAlpha: 0, duration: 0.7 }, 0.18)
+    .from(".room-copy .lead, #to-kak", { y: 16, autoAlpha: 0, duration: 0.5, stagger: 0.08 }, 0.32);
 
   const glow = gsap.to(".room-light", {
     opacity: 0.55,
@@ -125,9 +69,74 @@ mm.add("(prefers-reduced-motion: no-preference)", () => {
     },
   });
 
+  const paper = ScrollTrigger.create({
+    trigger: "#hod",
+    start: "top 70px",
+    onEnter: () => document.querySelector("#mast").classList.add("is-paper"),
+    onLeaveBack: () => document.querySelector("#mast").classList.remove("is-paper"),
+  });
+
+  gsap.set(".rise", { y: 22, autoAlpha: 0 });
+  const batch = ScrollTrigger.batch(".rise", {
+    start: "top 86%",
+    once: true,
+    onEnter: (elements) => {
+      gsap.to(elements, {
+        y: 0,
+        autoAlpha: 1,
+        duration: 0.55,
+        stagger: 0.06,
+        ease: "power2.out",
+        overwrite: "auto",
+      });
+    },
+  });
+
   return () => {
     intro.kill();
     glow.kill();
     drift.kill();
+    paper.kill();
+    batch.forEach((item) => item.kill());
+    gsap.set(".rise", { clearProps: "all" });
+  };
+});
+
+mm.add("(min-width: 861px) and (prefers-reduced-motion: no-preference)", () => {
+  const story = gsap.timeline({
+    defaults: { ease: "none" },
+    scrollTrigger: {
+      trigger: "#kak",
+      start: "top top",
+      end: "+=1200",
+      pin: true,
+      scrub: 0.6,
+      anticipatePin: 1,
+    },
+  });
+  story
+    .fromTo(".story-rule", { scaleY: 0.18 }, { scaleY: 1, duration: 0.7 }, 0)
+    .from(".line:nth-child(n + 2)", { y: 20, autoAlpha: 0, stagger: 0.32, duration: 0.4 }, 0.15);
+
+  return () => story.kill();
+});
+
+mm.add("(max-width: 860px) and (prefers-reduced-motion: no-preference)", () => {
+  const rule = gsap.from(".story-rule", {
+    scaleY: 0,
+    duration: 0.6,
+    ease: "power2.out",
+    scrollTrigger: { trigger: ".story", start: "top 80%", once: true },
+  });
+  const lines = gsap.from(".line:nth-child(n + 2)", {
+    y: 16,
+    autoAlpha: 0,
+    stagger: 0.12,
+    duration: 0.45,
+    scrollTrigger: { trigger: ".story", start: "top 80%", once: true },
+  });
+  return () => {
+    rule.kill();
+    lines.kill();
   };
 });
