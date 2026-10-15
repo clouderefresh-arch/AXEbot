@@ -114,65 +114,71 @@ a {
   color: var(--wool-light);
 }
 
-.pass {
+.glow {
   position: absolute;
-  z-index: 4;
-  inset: 0;
-  pointer-events: none;
-}
-
-.pass-spine {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 12px;
-  width: 1px;
-  background: var(--wool-light);
-  transform: scaleY(0);
-  transform-origin: top center;
-  will-change: transform;
-}
-
-.pass-h {
-  position: absolute;
-  z-index: 3;
-  left: 0;
-  height: 1px;
-  background: var(--wool-light);
-  transform: scaleX(0);
-  transform-origin: left center;
+  z-index: -1;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(214, 156, 98, 0.55) 0%, rgba(141, 90, 50, 0.22) 38%, transparent 72%);
   pointer-events: none;
   will-change: transform;
 }
 
-.room .pass-h {
-  top: 78px;
-  width: 42%;
+.glow-a {
+  left: -12%;
+  bottom: -28%;
+  width: 58vw;
+  height: 58vw;
 }
 
-.kak {
-  position: relative;
+.glow-b {
+  top: -32%;
+  right: -14%;
+  width: 74vw;
+  height: 88%;
 }
 
-.kak .pass-h {
-  top: 92px;
-  width: 72%;
+.glow-c {
+  bottom: -36%;
+  left: -20%;
+  width: 62vw;
+  height: 62vw;
 }
 
-.hod .pass-h {
-  top: 78px;
-  width: 100%;
+.glow-d {
+  top: -26%;
+  right: -12%;
+  width: 70vw;
+  height: 78%;
+}
+
+.curve {
+  position: absolute;
+  z-index: -1;
+  top: -8%;
+  right: 0;
+  width: min(38vw, 460px);
+  height: 116%;
+  overflow: visible;
+  color: var(--wool-light);
+  pointer-events: none;
+}
+
+.curve path {
+  stroke: currentColor;
+  stroke-width: 1.35;
+  vector-effect: non-scaling-stroke;
 }
 
 .room {
   position: relative;
+  z-index: 1;
   display: grid;
   grid-template-columns: minmax(280px, 0.92fr) minmax(340px, 1.08fr);
   align-items: center;
   height: 100svh;
   min-height: 100svh;
-  overflow: hidden;
-  background: var(--curtain);
+  overflow: visible;
+  background: transparent;
 }
 
 .room-copy {
@@ -252,26 +258,13 @@ h1 {
   pointer-events: none;
 }
 
-.room-light {
-  position: absolute;
-  z-index: 1;
-  left: 18%;
-  right: 12%;
-  bottom: 16%;
-  height: 38%;
-  background: radial-gradient(circle, rgba(196, 137, 90, 0.28), transparent 68%);
-  opacity: 0.35;
-  pointer-events: none;
-  will-change: opacity;
-}
-
 .kak {
+  position: relative;
+  z-index: 1;
   display: flex;
   align-items: center;
   min-height: 100svh;
-  background:
-    radial-gradient(520px 280px at 80% 20%, rgba(196, 137, 90, 0.16), transparent 70%),
-    var(--curtain);
+  background: transparent;
 }
 
 .kak-inner {
@@ -317,11 +310,10 @@ h2 {
 
 .hod {
   position: relative;
+  z-index: 1;
   padding-block: clamp(96px, 12vw, 150px);
   color: var(--shirt);
-  background:
-    radial-gradient(520px 280px at 18% 0%, rgba(196, 137, 90, 0.16), transparent 70%),
-    var(--curtain);
+  background: transparent;
 }
 
 .hod h2 {
@@ -663,18 +655,8 @@ body.is-reading > :not(.reader) {
     padding-bottom: 18px;
   }
 
-  .room .pass-h,
-  .kak .pass-h {
-    top: 108px;
-    width: 70%;
-  }
-
-  .hod .pass-h {
-    top: 112px;
-  }
-
-  .pass-spine {
-    left: 8px;
+  .curve {
+    width: 28vw;
   }
 
   .btn-quiet {
@@ -683,8 +665,6 @@ body.is-reading > :not(.reader) {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .pass-spine,
-  .pass-h,
   .topic-line {
     transform: none;
   }

@@ -133,12 +133,37 @@ mm.add("(prefers-reduced-motion: no-preference)", () => {
     .from(".room-copy h1", { y: 24, autoAlpha: 0, duration: 0.7 }, 0.18)
     .from(".room-copy .lead, #to-kak", { y: 16, autoAlpha: 0, duration: 0.5, stagger: 0.08 }, 0.32);
 
-  const glow = gsap.to(".room-light", {
-    opacity: 0.55,
-    duration: 3.6,
-    repeat: -1,
-    yoyo: true,
-    ease: "sine.inOut",
+  const lights = gsap.utils.toArray(".glow").map((glow, index) =>
+    gsap.fromTo(
+      glow,
+      { y: 80 },
+      {
+        y: index % 2 === 0 ? -140 : -70,
+        x: index % 2 === 0 ? -50 : 40,
+        ease: "none",
+        scrollTrigger: {
+          trigger: glow.parentElement,
+          start: "top bottom",
+          end: "bottom top",
+          scrub: 0.7,
+        },
+      }
+    )
+  );
+
+  const curveDraw = gsap.utils.toArray(".curve path").map((path) => {
+    const length = path.getTotalLength();
+    gsap.set(path, { strokeDasharray: length, strokeDashoffset: length });
+    return gsap.to(path, {
+      strokeDashoffset: 0,
+      ease: "none",
+      scrollTrigger: {
+        trigger: path.closest("section"),
+        start: "top 80%",
+        end: "center center",
+        scrub: 0.6,
+      },
+    });
   });
 
   const drift = gsap.to(".portrait-wrap img", {
@@ -151,34 +176,6 @@ mm.add("(prefers-reduced-motion: no-preference)", () => {
       scrub: 0.6,
     },
   });
-
-  const spine = gsap.fromTo(
-    ".pass-spine",
-    { scaleY: () => window.innerHeight / document.documentElement.scrollHeight },
-    {
-      scaleY: 1,
-      ease: "none",
-      scrollTrigger: {
-        trigger: document.body,
-        start: "top top",
-        end: "bottom bottom",
-        scrub: 0.6,
-      },
-    }
-  );
-
-  const crosses = gsap.utils.toArray(".pass-h").map((line) =>
-    gsap.to(line, {
-      scaleX: 1,
-      ease: "none",
-      scrollTrigger: {
-        trigger: line.parentElement,
-        start: "top 80%",
-        end: "top 35%",
-        scrub: 0.6,
-      },
-    })
-  );
 
   const tap = gsap.to(".press-dot", {
     scale: 0.55,
@@ -206,11 +203,10 @@ mm.add("(prefers-reduced-motion: no-preference)", () => {
 
   return () => {
     intro.kill();
-    glow.kill();
     drift.kill();
-    spine.kill();
+    curveDraw.forEach((item) => item.kill());
     tap.kill();
-    crosses.forEach((item) => item.kill());
+    lights.forEach((item) => item.kill());
     batch.forEach((item) => item.kill());
     gsap.set(".rise", { clearProps: "all" });
   };
