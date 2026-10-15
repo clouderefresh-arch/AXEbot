@@ -78,25 +78,16 @@ const closeReader = () => {
   });
 };
 
-let offerCue = null;
-
 document.querySelectorAll(".topic").forEach((button) => {
   const line = button.querySelector(".topic-line");
   const icon = button.querySelector(".topic-press");
-  const isOffer = button.classList.contains("topic-offer");
   const show = () => {
     if (prefersReduce()) return;
-    if (isOffer && offerCue) offerCue.pause();
     gsap.to(line, { scaleX: 1, duration: 0.45, ease: "power2.out", overwrite: "auto" });
     gsap.to(icon, { y: 3, duration: 0.35, ease: "power2.out", overwrite: "auto" });
   };
   const hide = () => {
     if (prefersReduce()) return;
-    if (isOffer && offerCue) {
-      gsap.killTweensOf([line, icon]);
-      offerCue.invalidate().restart();
-      return;
-    }
     gsap.to(line, { scaleX: 0, duration: 0.3, ease: "power2.in", overwrite: "auto" });
     gsap.to(icon, { y: 0, duration: 0.35, ease: "power2.out", overwrite: "auto" });
   };
@@ -160,15 +151,13 @@ mm.add("(prefers-reduced-motion: no-preference)", () => {
     )
   );
 
-  const offer = document.querySelector(".topic-offer");
-  offerCue = gsap.timeline({ repeat: -1, defaults: { ease: "sine.inOut" } });
-  offerCue
-    .fromTo(offer.querySelector(".topic-line"), { scaleX: 0.15 }, { scaleX: 1, duration: 1.2 }, 0)
-    .fromTo(offer.querySelector(".topic-name"), { color: "#f4efe6" }, { color: "#c4895a", duration: 1.2 }, 0)
-    .fromTo(".offer-light", { scale: 0.86, autoAlpha: 0.45 }, { scale: 1.12, autoAlpha: 1, duration: 1.2 }, 0)
-    .to(offer.querySelector(".topic-line"), { scaleX: 0.15, duration: 1.2 })
-    .to(offer.querySelector(".topic-name"), { color: "#f4efe6", duration: 1.2 }, "<")
-    .to(".offer-light", { scale: 0.86, autoAlpha: 0.45, duration: 1.2 }, "<");
+  const offerSheen = gsap.to(".topic-offer .topic-name", {
+    backgroundPosition: "100% center",
+    duration: 2.8,
+    ease: "sine.inOut",
+    repeat: -1,
+    yoyo: true,
+  });
 
   const drift = gsap.to(".portrait-wrap img", {
     yPercent: -4,
@@ -208,7 +197,7 @@ mm.add("(prefers-reduced-motion: no-preference)", () => {
   return () => {
     intro.kill();
     drift.kill();
-    if (offerCue) offerCue.kill();
+    offerSheen.kill();
     tap.kill();
     lights.forEach((item) => item.kill());
     batch.forEach((item) => item.kill());
