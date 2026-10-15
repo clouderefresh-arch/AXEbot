@@ -25,6 +25,73 @@ document.querySelector("#to-kak").addEventListener("click", (event) => {
   scrollToId("#kak");
 });
 
+const reader = document.querySelector("#reader");
+const readerTitle = document.querySelector("#reader-title");
+const readerBody = document.querySelector("#reader-body");
+const readerClose = document.querySelector("#reader-close");
+let readerReturn = null;
+let lockedScroll = 0;
+
+const openReader = (button) => {
+  readerTitle.textContent = button.querySelector(".topic-name").textContent;
+  readerBody.innerHTML = button.querySelector(".topic-full").innerHTML;
+  reader.hidden = false;
+  document.body.classList.add("is-reading");
+  lockedScroll = window.scrollY;
+  document.body.style.top = `-${lockedScroll}px`;
+  document.body.style.position = "fixed";
+  document.body.style.width = "100%";
+  readerReturn = button;
+  if (prefersReduce()) {
+    gsap.set(".reader-sheet", { autoAlpha: 1, y: 0 });
+  } else {
+    gsap.fromTo(
+      ".reader-sheet",
+      { y: 18, autoAlpha: 0 },
+      { y: 0, autoAlpha: 1, duration: 0.4, ease: "power2.out" }
+    );
+  }
+  readerClose.focus();
+};
+
+const closeReader = () => {
+  const finish = () => {
+    reader.hidden = true;
+    document.body.classList.remove("is-reading");
+    document.body.style.position = "";
+    document.body.style.top = "";
+    document.body.style.width = "";
+    window.scrollTo(0, lockedScroll);
+    ScrollTrigger.refresh();
+    if (readerReturn) readerReturn.focus();
+  };
+  if (prefersReduce()) {
+    finish();
+    return;
+  }
+  gsap.to(".reader-sheet", {
+    y: 12,
+    autoAlpha: 0,
+    duration: 0.25,
+    ease: "power2.in",
+    onComplete: finish,
+  });
+};
+
+document.querySelectorAll(".topic").forEach((button) => {
+  button.addEventListener("click", () => openReader(button));
+});
+
+readerClose.addEventListener("click", closeReader);
+
+reader.addEventListener("click", (event) => {
+  if (event.target === reader) closeReader();
+});
+
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape" && !reader.hidden) closeReader();
+});
+
 document.querySelectorAll(".btn").forEach((button) => {
   button.addEventListener("pointerdown", () => {
     if (prefersReduce()) return;

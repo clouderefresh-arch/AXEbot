@@ -150,7 +150,7 @@ h1 {
 
 .room-copy .lead,
 .kak .lead {
-  max-width: 36ch;
+  max-width: 46ch;
   margin-top: 22px;
   color: var(--quiet);
 }
@@ -381,6 +381,115 @@ h3 {
   margin-top: 12px;
 }
 
+.topics {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 22px 28px;
+  margin-top: 40px;
+}
+
+.topic {
+  display: flex;
+  align-items: flex-end;
+  min-height: 168px;
+  padding: 18px 16px 16px 0;
+  border: 0;
+  background: transparent;
+  box-shadow: inset 0 1px 0 var(--paper-line);
+  color: var(--ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  will-change: transform;
+}
+
+.topic-name {
+  font-family: Literata, Georgia, serif;
+  font-size: clamp(20px, 1.7vw, 26px);
+  line-height: 1.2;
+}
+
+.topic-full {
+  display: none;
+}
+
+.topic:hover .topic-name,
+.topic:focus-visible .topic-name {
+  color: var(--wool);
+}
+
+.topic:focus-visible {
+  outline: 2px solid var(--wool);
+  outline-offset: 4px;
+}
+
+body.is-reading > :not(.reader) {
+  filter: blur(8px);
+  pointer-events: none;
+  user-select: none;
+}
+
+.reader {
+  position: fixed;
+  z-index: 40;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 28px clamp(16px, 4vw, 40px);
+  background: rgba(26, 18, 14, 0.28);
+}
+
+.reader[hidden] {
+  display: none;
+}
+
+.reader-sheet {
+  width: min(840px, 100%);
+  max-height: min(78svh, 760px);
+  overflow: auto;
+  padding: 28px 32px 36px;
+  background:
+    radial-gradient(420px 180px at 0% 0%, rgba(196, 137, 90, 0.2), transparent 70%),
+    var(--paper);
+  color: var(--ink);
+  box-shadow: 0 24px 60px rgba(26, 18, 14, 0.28);
+}
+
+.reader-close {
+  float: right;
+  margin: 0 0 12px 16px;
+  padding: 8px 12px;
+  border: 0;
+  background: transparent;
+  box-shadow: inset 0 0 0 1px var(--paper-line);
+  color: var(--ink);
+  font: inherit;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.reader-close:focus-visible {
+  outline: 2px solid var(--wool);
+  outline-offset: 3px;
+}
+
+.reader-sheet h2 {
+  max-width: 18ch;
+  margin-bottom: 18px;
+  font-size: clamp(28px, 3vw, 40px);
+}
+
+.reader-body p {
+  margin-top: 14px;
+  color: var(--ink-soft);
+  font-size: 17px;
+  line-height: 1.55;
+}
+
+.reader-body a {
+  color: var(--wool);
+}
+
 .contact {
   display: grid;
   grid-template-columns: 1.4fr 1fr 1fr;
@@ -450,14 +559,21 @@ h3 {
     background: linear-gradient(180deg, var(--curtain) 0%, rgba(26, 18, 14, 0.82) 16%, transparent 48%);
   }
 
+  .hod {
+    padding-top: 128px;
+  }
+
   .sheet-head,
-  .gets,
-  .steps,
-  .split,
+  .topics,
   .contact {
     grid-template-columns: 1fr;
     grid-template-rows: none;
     grid-auto-flow: row;
+  }
+
+  .topic {
+    min-height: 0;
+    padding-bottom: 18px;
   }
 
   .btn-quiet {
